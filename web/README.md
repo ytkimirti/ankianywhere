@@ -82,11 +82,16 @@ cp -r web/vercel.json web/api web/build/ && vercel deploy web/build --prod
 Serve the card origin from the same deployment by adding its domain to the
 project.
 
-This fork deploys to the `ankiweb-ytkimirti` project: the app at
-https://ankiweb-ytkimirti.vercel.app, built with
-`VITE_CARD_ORIGIN=https://ankiweb-ytkimirti-cards.vercel.app`, which is the
-project's second domain. `vercel link` writes a `.env.local` into the
-directory it links; delete it before deploying `web/build`.
+This fork deploys as Anki Anywhere to the `ankianywhere` Vercel project: the
+app at https://ankianywhere.vercel.app, built with
+`VITE_CARD_ORIGIN=https://ankianywhere-cards.vercel.app`, which is the
+project's second domain. Every push to `main` builds and deploys it
+(`.github/workflows/deploy-web.yml`), using the `VERCEL_TOKEN`,
+`VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` repository secrets. The old
+https://ankiweb-ytkimirti.vercel.app domain still serves the same build so
+collections stored there can be synced before moving. For a manual deploy,
+`vercel link` writes a `.env.local` into the directory it links; delete it
+before deploying `web/build`.
 
 ## Plugins
 
