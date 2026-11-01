@@ -98,4 +98,4 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           url=$(vercel deploy web/build --prod --yes --token "$VERCEL_TOKEN")
-          printf '### Production deployment\n\n%s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
+          printf '### Production deployment\n\nhttps://ankianywhere.vercel.app (%s)\n' "$url" >> "$GITHUB_STEP_SUMMARY"
