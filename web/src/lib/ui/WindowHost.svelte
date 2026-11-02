@@ -67,7 +67,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <style lang="scss">
     .window-backdrop {
         position: fixed;
-        inset: 0;
+        inset: var(--app-top, 0px) 0 auto;
+        height: var(--app-height, 100dvh);
         z-index: 900;
         display: flex;
         align-items: center;
@@ -88,27 +89,27 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         flex-direction: column;
         overflow: hidden;
         max-width: calc(100vw - 2rem);
-        max-height: calc(100dvh - 2rem);
+        max-height: calc(var(--app-height, 100dvh) - 2rem);
         &.size-sm {
             width: 28rem;
         }
         &.size-md {
             width: 42rem;
-            height: min(36rem, calc(100dvh - 2rem));
+            height: min(36rem, calc(var(--app-height, 100dvh) - 2rem));
         }
         &.size-lg {
             width: 64rem;
-            height: min(48rem, calc(100dvh - 2rem));
+            height: min(48rem, calc(var(--app-height, 100dvh) - 2rem));
         }
         &.size-xl {
             width: 90rem;
-            height: calc(100dvh - 2rem);
+            height: calc(var(--app-height, 100dvh) - 2rem);
         }
         &.size-full {
             width: 100vw;
-            height: 100dvh;
+            height: var(--app-height, 100dvh);
             max-width: 100vw;
-            max-height: 100dvh;
+            max-height: var(--app-height, 100dvh);
             border-radius: 0;
             border: none;
         }
@@ -117,9 +118,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     @media (max-width: 700px) {
         .app-window:not(.size-sm) {
             width: 100vw;
-            height: 100dvh;
+            height: var(--app-height, 100dvh);
             max-width: 100vw;
-            max-height: 100dvh;
+            max-height: var(--app-height, 100dvh);
             border-radius: 0;
             border: none;
         }

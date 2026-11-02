@@ -298,7 +298,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <style lang="scss">
     .dialog-backdrop {
         position: fixed;
-        inset: 0;
+        inset: var(--app-top, 0px) 0 auto;
+        height: var(--app-height, 100dvh);
         z-index: 1000;
         display: flex;
         align-items: center;
@@ -318,7 +319,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         padding: 1.25rem;
         width: min(32rem, 100%);
-        max-height: calc(100vh - 2rem);
+        max-height: calc(var(--app-height, 100vh) - 2rem);
         display: flex;
         flex-direction: column;
         gap: 0.75rem;

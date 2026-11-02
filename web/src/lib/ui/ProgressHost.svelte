@@ -51,7 +51,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <style lang="scss">
     .progress-backdrop {
         position: fixed;
-        inset: 0;
+        inset: var(--app-top, 0px) 0 auto;
+        height: var(--app-height, 100dvh);
         z-index: 1050;
         display: flex;
         align-items: center;

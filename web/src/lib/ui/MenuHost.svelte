@@ -131,7 +131,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <style lang="scss">
     .menu-backdrop {
         position: fixed;
-        inset: 0;
+        inset: var(--app-top, 0px) 0 auto;
+        height: var(--app-height, 100dvh);
         z-index: 1200;
     }
 
@@ -140,7 +141,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         z-index: 1201;
         min-width: 12rem;
         max-width: calc(100vw - 8px);
-        max-height: calc(100vh - 8px);
+        max-height: calc(var(--app-height, 100vh) - 8px);
         overflow-y: auto;
         background: var(--canvas-elevated);
         color: var(--fg);

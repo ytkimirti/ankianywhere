@@ -131,6 +131,33 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         applyUpdateIfIdle();
     });
 
+    // The page can be taller than what is visible: iOS Safari's layout viewport
+    // reaches under its bottom toolbar, and after the keyboard closes it can leave
+    // the page panned down, which page scrolling cannot undo. The app shell and
+    // the overlays follow the visible part (--app-top, --app-height) instead.
+    onMount(() => {
+        const vv = window.visualViewport;
+        if (!vv) {
+            return;
+        }
+        const root = document.documentElement.style;
+        const update = () => {
+            // a pinch zoom keeps the layout as it was
+            if (Math.abs(vv.scale - 1) > 0.01) {
+                return;
+            }
+            root.setProperty("--app-top", `${vv.offsetTop}px`);
+            root.setProperty("--app-height", `${vv.height}px`);
+        };
+        update();
+        vv.addEventListener("resize", update);
+        vv.addEventListener("scroll", update);
+        return () => {
+            vv.removeEventListener("resize", update);
+            vv.removeEventListener("scroll", update);
+        };
+    });
+
     onMount(async () => {
         // as desktop's webviews: native scrollbars on macOS, and the pages' platform styles
         document.body.classList.add(PLATFORM_CLASS);
@@ -321,7 +348,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     .crashed {
         position: fixed;
-        inset: 0;
+        inset: var(--app-top, 0px) 0 auto;
+        height: var(--app-height, 100dvh);
         z-index: 10000;
         display: flex;
         align-items: center;
@@ -349,7 +377,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     .app {
         display: flex;
         flex-direction: column;
-        height: 100dvh;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: var(--app-top, 0px);
+        height: var(--app-height, 100dvh);
         overflow: hidden;
         &.dragging {
             outline: 3px dashed var(--border-focus);
