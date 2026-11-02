@@ -13,7 +13,7 @@ import { version } from "$app/environment";
 import { get } from "svelte/store";
 
 import { cardOrigin } from "../config";
-import { readMediaFile } from "../media-file";
+import { readMediaFile, type RelayedMediaFile } from "../media-file";
 import { callBackend } from "./backend";
 import type { AppMessage, FrameMessage } from "./card-messages";
 import type { KeyLike } from "./keys";
@@ -21,6 +21,9 @@ import { mediaArrived, mediaProfile } from "./media";
 import { lookForUpdate } from "./pwa";
 import { reduceMotion } from "./settings";
 import { nightMode } from "./theme";
+
+/** The most a ranged media answer to a card frame holds, read into memory at once. */
+const RELAYED_RANGE = 4 * 1024 * 1024;
 
 /** Backend methods card frames may call: custom scheduling and translations. */
 const FRAME_METHODS = new Set(["getSchedulingStatesWithContext", "setSchedulingStates", "i18nResources"]);
@@ -294,11 +297,11 @@ export class CardFrame {
                     break;
                 }
                 try {
-                    const file = await readMediaFile(mediaProfile(), String(message.path), message.range ?? null);
-                    // as bytes: Safari's service worker on the card origin, a
-                    // third party here, cannot read a Blob from the app's storage
+                    const path = String(message.path);
+                    const file = await readMediaFile(mediaProfile(), path, message.range ?? null, RELAYED_RANGE);
                     const body = file?.body ? await file.body.arrayBuffer() : null;
-                    port.postMessage(file && { ...file, body }, body ? [body] : []);
+                    const relayed: RelayedMediaFile | null = file && { ...file, body };
+                    port.postMessage(relayed, body ? [body] : []);
                 } catch {
                     port.postMessage(null);
                 }

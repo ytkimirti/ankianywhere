@@ -10,9 +10,15 @@
 export interface MediaFile {
     status: number;
     headers: Record<string, string>;
-    /** A Blob from OPFS, or its bytes once relayed to the card origin (app/cardframe.ts). */
-    body: Blob | ArrayBuffer | null;
+    body: Blob | null;
 }
+
+/**
+ * A media file as the app sends it to the card origin's service worker
+ * (app/cardframe.ts): as bytes, since Safari cannot read a Blob from the app's
+ * storage in a service worker under a third-party frame.
+ */
+export type RelayedMediaFile = Omit<MediaFile, "body"> & { body: ArrayBuffer | null };
 
 const MIME: Record<string, string> = {
     jpg: "image/jpeg",
@@ -64,8 +70,15 @@ export function mimeType(name: string): string {
 /**
  * The media file a root path like "/cat%201.jpg" names, honouring a Range
  * header, which Safari needs for audio and video. Null if there is none.
+ * `maxRange` caps the bytes in a ranged answer; media elements ask for the
+ * rest as they need it.
  */
-export async function readMediaFile(profile: string | null, path: string, range: string | null): Promise<MediaFile | null> {
+export async function readMediaFile(
+    profile: string | null,
+    path: string,
+    range: string | null,
+    maxRange = Infinity,
+): Promise<MediaFile | null> {
     let name: string;
     try {
         name = decodeURIComponent(path.replace(/^\//, ""));
@@ -101,6 +114,7 @@ export async function readMediaFile(profile: string | null, path: string, range:
         if (start >= size || start > end) {
             return { status: 416, headers: { "Content-Range": `bytes */${size}` }, body: null };
         }
+        end = Math.min(end, start + maxRange - 1);
         return {
             status: 206,
             headers: { ...headers, "Content-Range": `bytes ${start}-${end}/${size}`, "Content-Length": String(end - start + 1) },

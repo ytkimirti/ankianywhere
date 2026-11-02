@@ -20,7 +20,7 @@
 import { build, files, version } from "$service-worker";
 
 import { isCardOrigin } from "./lib/config";
-import { type MediaFile, mimeType, readMediaFile } from "./lib/media-file";
+import { mimeType, readMediaFile, type RelayedMediaFile } from "./lib/media-file";
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
@@ -372,14 +372,14 @@ async function currentProfile(): Promise<string | null> {
 }
 
 /** Asks the card frame that made the request to fetch a media file from the app. */
-async function relayedMedia(clientId: string, path: string, range: string | null): Promise<MediaFile | null> {
+async function relayedMedia(clientId: string, path: string, range: string | null): Promise<RelayedMediaFile | null> {
     const client = clientId ? await sw.clients.get(clientId) : undefined;
     if (!client) {
         return null;
     }
     const channel = new MessageChannel();
-    const reply = new Promise<MediaFile | null>((resolve) => {
-        channel.port1.onmessage = (event) => resolve((event.data as MediaFile | null) ?? null);
+    const reply = new Promise<RelayedMediaFile | null>((resolve) => {
+        channel.port1.onmessage = (event) => resolve((event.data as RelayedMediaFile | null) ?? null);
         setTimeout(() => resolve(null), 30_000);
     });
     client.postMessage({ type: "media", path, range }, [channel.port2]);

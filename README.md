@@ -38,8 +38,9 @@ use Anki there.
 AnkiWeb does not accept requests from other websites, so sync goes through
 this site's server, which forwards each request to ankiweb.net and stores
 nothing (the forwarding rules are in [`web/vercel.json`](web/vercel.json) and
-[`web/api`](web/api)). Your login passes through it once; after that the app
-keeps only AnkiWeb's sync key, in your browser. If you'd rather not trust
+[`web/api`](web/api)). Your login and every sync pass through it; your
+password is sent once, and after that the app keeps only AnkiWeb's sync key,
+in your browser. If you'd rather not trust
 this site's server, [deploy your own](#deploy-your-own).
 
 ## Deploy your own

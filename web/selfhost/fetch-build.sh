@@ -8,6 +8,10 @@ url="${ANKIANYWHERE_BUILD_URL:-https://github.com/ytkimirti/ankianywhere/release
 rm -rf build download
 mkdir download
 curl -sSfL --retry 5 --retry-all-errors --retry-delay 5 "$url" | tar xz -C download
+if [ ! -f download/site/index.html ] || [ ! -d download/selfhost ]; then
+    echo "$url is not an Anki Anywhere build."
+    exit 1
+fi
 for file in vercel.json api/ankiweb-proxy.js; do
     if ! cmp -s "download/selfhost/$file" "$file"; then
         echo "This build needs a newer $file. Copy vercel.json and api/ from"
@@ -17,5 +21,4 @@ for file in vercel.json api/ankiweb-proxy.js; do
 done
 mv download/site build
 rm -rf download
-test -f build/index.html
 echo "Fetched build $(cat build/BUILD)"
