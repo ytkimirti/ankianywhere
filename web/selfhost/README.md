@@ -6,9 +6,10 @@ AnkiWeb login and reviews go through no server but yours.
 
 The build step downloads the newest prebuilt site from the project's
 releases; nothing is compiled. To update, redeploy the project in Vercel
-(Deployments > ... > Redeploy). To pin a build, set the
-`ANKIANYWHERE_BUILD_URL` environment variable to another release's
-`ankianywhere-web.tar.gz`.
+(Deployments > ... > Redeploy). If an update needs a newer `vercel.json` or
+proxy, the build stops and says so, and your current version keeps running
+until you copy them from
+[web/selfhost](https://github.com/ytkimirti/ankianywhere/tree/main/web/selfhost).
 
 Card HTML runs on the app's own domain here, as it does in desktop Anki, so
 only study shared decks whose card scripts you trust.

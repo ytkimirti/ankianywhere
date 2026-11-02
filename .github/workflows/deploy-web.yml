@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write # publishes the self-hosting build as the web-latest release
+  contents: read
 
 # Finish an in-flight deployment before starting the newest queued push.
 concurrency:
@@ -91,7 +91,11 @@ jobs:
           ../node_modules/.bin/vite build
           node scripts/sw-integrity.mjs
           echo "$GITHUB_SHA" > build/BUILD
-          tar czf "$RUNNER_TEMP/ankianywhere-web.tar.gz" -C build .
+          mkdir -p "$RUNNER_TEMP/selfhost-dist/selfhost/api"
+          mv build "$RUNNER_TEMP/selfhost-dist/site"
+          cp selfhost/vercel.json "$RUNNER_TEMP/selfhost-dist/selfhost/"
+          cp selfhost/api/ankiweb-proxy.js "$RUNNER_TEMP/selfhost-dist/selfhost/api/"
+          tar czf "$RUNNER_TEMP/ankianywhere-web.tar.gz" -C "$RUNNER_TEMP/selfhost-dist" site selfhost
 
       - name: Build site
         run: |
@@ -110,16 +114,43 @@ jobs:
           url=$(vercel deploy web/build --prod --yes --token "$VERCEL_TOKEN")
           printf '### Production deployment\n\nhttps://ankianywhere.vercel.app (%s)\n' "$url" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Publish self-hosting build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: selfhost
+          path: ${{ runner.temp }}/ankianywhere-web.tar.gz
+          retention-days: 1
+
+  # Only this job can write to the repository, and it runs no third-party actions.
+  publish-selfhost:
+    needs: deploy
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: selfhost
+
+      - name: Publish as the web-latest release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           tag=web-latest
-          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" -f sha="$GITHUB_SHA" -F force=true > /dev/null
+          asset=ankianywhere-web.tar.gz
+          if gh release view "$tag" > /dev/null 2>&1; then
+            gh api -X PATCH "repos/$GH_REPO/git/refs/tags/$tag" -f sha="$GITHUB_SHA" -F force=true > /dev/null
           else
-            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-              --title "Anki Anywhere (latest web build)" \
-              --notes "The newest build of the site, which [web/selfhost](https://github.com/$GITHUB_REPOSITORY/tree/main/web/selfhost) deploys. Replaced on every push to main."
+            gh release create "$tag" --target "$GITHUB_SHA" --title "Anki Anywhere (latest web build)" \
+              --notes "The newest build of the site, which [web/selfhost](https://github.com/$GH_REPO/tree/main/web/selfhost) deploys. Replaced on every push to main."
           fi
-          gh release upload "$tag" "$RUNNER_TEMP/ankianywhere-web.tar.gz" --repo "$GITHUB_REPOSITORY" --clobber
+          # upload under another name first, so the asset is missing only between the delete and the rename
+          cp "$asset" "next-$asset"
+          gh release upload "$tag" "next-$asset" --clobber
+          ids=$(gh api "repos/$GH_REPO/releases/tags/$tag" --jq '.assets[] | "\(.name) \(.id)"')
+          old=$(awk -v n="$asset" '$1 == n { print $2 }' <<< "$ids")
+          new=$(awk -v n="next-$asset" '$1 == n { print $2 }' <<< "$ids")
+          if [[ -n "$old" ]]; then
+            gh api -X DELETE "repos/$GH_REPO/releases/assets/$old"
+          fi
+          gh api -X PATCH "repos/$GH_REPO/releases/assets/$new" -f name="$asset" > /dev/null

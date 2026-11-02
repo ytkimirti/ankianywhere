@@ -294,7 +294,11 @@ export class CardFrame {
                     break;
                 }
                 try {
-                    port.postMessage(await readMediaFile(mediaProfile(), String(message.path), message.range ?? null));
+                    const file = await readMediaFile(mediaProfile(), String(message.path), message.range ?? null);
+                    // as bytes: Safari's service worker on the card origin, a
+                    // third party here, cannot read a Blob from the app's storage
+                    const body = file?.body ? await file.body.arrayBuffer() : null;
+                    port.postMessage(file && { ...file, body }, body ? [body] : []);
                 } catch {
                     port.postMessage(null);
                 }

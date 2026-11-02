@@ -10,7 +10,8 @@
 export interface MediaFile {
     status: number;
     headers: Record<string, string>;
-    body: Blob | null;
+    /** A Blob from OPFS, or its bytes once relayed to the card origin (app/cardframe.ts). */
+    body: Blob | ArrayBuffer | null;
 }
 
 const MIME: Record<string, string> = {

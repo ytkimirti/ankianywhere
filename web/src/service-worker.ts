@@ -170,7 +170,9 @@ async function precache(): Promise<void> {
             headers.delete("Content-Length");
             const body = response.body.pipeThrough(counter);
             await cache.put(path, new Response(body, { status: response.status, headers }));
-            if (expected && (await sha256(await new Blob(chunks).arrayBuffer())) !== expected) {
+            // not through a Blob: Safari cannot read one back in a service
+            // worker under a third-party frame, which the card origin's is
+            if (expected && (await sha256(concat(chunks))) !== expected) {
                 throw new Error(`${path}: not the file this version was built with`);
             }
         }
@@ -314,7 +316,17 @@ async function built(key: string, response: Response): Promise<boolean> {
     return !expected || (await sha256(await response.clone().arrayBuffer())) === expected;
 }
 
-async function sha256(bytes: ArrayBuffer): Promise<string> {
+function concat(chunks: Uint8Array[]): Uint8Array {
+    const out = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
+    let offset = 0;
+    for (const chunk of chunks) {
+        out.set(chunk, offset);
+        offset += chunk.length;
+    }
+    return out;
+}
+
+async function sha256(bytes: BufferSource): Promise<string> {
     const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
     return btoa(String.fromCharCode(...digest));
 }

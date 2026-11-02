@@ -35,12 +35,12 @@ use Anki there.
 
 ## Privacy
 
-AnkiWeb does not accept requests from other websites, so sync goes through a
-small relay ([`web/api/ankiweb-proxy.js`](web/api/ankiweb-proxy.js)) that
-forwards each request to ankiweb.net and stores nothing. Your login passes
-through it once; after that the app keeps only AnkiWeb's sync key, in your
-browser. If you'd rather not trust this site's relay,
-[deploy your own](#deploy-your-own): then the relay is yours.
+AnkiWeb does not accept requests from other websites, so sync goes through
+this site's server, which forwards each request to ankiweb.net and stores
+nothing (the forwarding rules are in [`web/vercel.json`](web/vercel.json) and
+[`web/api`](web/api)). Your login passes through it once; after that the app
+keeps only AnkiWeb's sync key, in your browser. If you'd rather not trust
+this site's server, [deploy your own](#deploy-your-own).
 
 ## Deploy your own
 
@@ -49,7 +49,12 @@ browser. If you'd rather not trust this site's relay,
 The button copies a small template ([`web/selfhost`](web/selfhost)) to your
 GitHub and deploys it on a free Vercel account. It downloads the newest
 prebuilt app, so nothing is compiled; redeploy in Vercel to update. Your copy
-gets its own address and its own relay.
+gets its own address and forwards sync through your own Vercel account.
+
+One difference: this site shows cards from a second address, so scripts in
+a shared deck's cards can't reach the app's data. Your copy has one address
+and shows them the way desktop Anki does, so only study decks whose card
+scripts you trust there.
 
 ## Good to know
 

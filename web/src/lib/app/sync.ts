@@ -136,7 +136,7 @@ export async function updateSyncStatus(): Promise<void> {
 }
 
 // AnkiWeb refuses requests from other sites, so the login and sync go through
-// this site's relay (api/ankiweb-proxy.js), which stores nothing.
+// this site's server (vercel.json rewrites and api/), which stores nothing.
 const LOGIN_PRIVACY = "<p><small>This site relays your login to AnkiWeb and stores nothing on its server. "
     + '<a href="https://github.com/ytkimirti/ankianywhere#privacy" target="_blank" rel="noopener">How sync works</a></small></p>';
 
