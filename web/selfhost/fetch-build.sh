@@ -12,9 +12,24 @@ if [ ! -f download/site/index.html ] || [ ! -d download/selfhost ]; then
     echo "$url is not an Anki Anywhere build."
     exit 1
 fi
-for file in vercel.json api/ankiweb-proxy.js; do
-    if ! cmp -s "download/selfhost/$file" "$file"; then
-        echo "This build needs a newer $file. Copy vercel.json and api/ from"
+# vercel.json as JSON, and only the keys the build's copy has: Vercel may
+# reformat it and add keys on upload. Plain sh and node, since its build
+# image has no cmp or diff.
+same_json() {
+    node -e '
+        const fs = require("fs");
+        const [want, have] = process.argv.slice(1).map((f) => JSON.parse(fs.readFileSync(f, "utf8")));
+        const same = Object.keys(want).every((key) => JSON.stringify(want[key]) === JSON.stringify(have[key]));
+        process.exit(same ? 0 : 1);
+    ' "$1" "$2"
+}
+same_text() {
+    [ "$(cat "$1")" = "$(cat "$2")" ]
+}
+for check in "same_json vercel.json" "same_text api/ankiweb-proxy.js"; do
+    set -- $check
+    if ! "$1" "download/selfhost/$2" "$2" 2>/dev/null; then
+        echo "This build needs a newer $2. Copy vercel.json and api/ from"
         echo "https://github.com/ytkimirti/ankianywhere/tree/main/web/selfhost into this repository."
         exit 1
     fi
