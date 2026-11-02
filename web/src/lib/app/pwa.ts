@@ -201,9 +201,8 @@ function watchForUpdates(registration: ServiceWorkerRegistration, onUpdate: (app
  */
 export const storagePersisted = writable<boolean | null>(null);
 
-export const STORAGE_WARNING = "This browser has not agreed to keep Anki's data, and may delete it when the device runs "
-    + "low on space, backups included. Installing Anki as an app makes that less likely. Sync with AnkiWeb, or "
-    + "download a backup from File > Revert to Backup now and then, so a copy is kept off this device.";
+export const STORAGE_WARNING = "Your browser may clear Anki's data if this device runs low on space. "
+    + "Sync with AnkiWeb to keep a copy.";
 
 /** Asks for persistent storage, at startup and after syncs until granted. */
 export async function requestPersistentStorage(): Promise<boolean> {

@@ -15,7 +15,7 @@ import { hooks } from "../plugins/hooks";
 import { loadPlugins } from "../plugins/loader";
 import * as actions from "./actions";
 import { getEngine, startEngine } from "./backend";
-import { showError, showInfo, showWarning } from "./dialogs";
+import { openDialog, showError, showInfo, showWarning } from "./dialogs";
 import { registerFrontendHandlers } from "./frontend";
 import { installHost } from "./host";
 import { clearUndoInfo, moveToState, redoAction, undoAction, updateUndoActions, watchOperations } from "./main";
@@ -106,15 +106,34 @@ export async function boot(): Promise<void> {
     }
     setLoadingStage("Opening your collection…");
     await loadProfile(name);
-    void checkPersistentStorage();
+    void welcomeOrStorageNote();
 }
 
 /**
- * Asks the browser to keep Anki's data, and says once if it won't: the
- * collection, media and backups could all be evicted.
+ * On the first visit, says what this is and offers to log in to AnkiWeb.
+ * Otherwise asks the browser to keep Anki's data, and says once if it won't:
+ * the collection, media and backups could all be evicted. Syncing covers
+ * that, so the welcome does not repeat it.
  */
-async function checkPersistentStorage(): Promise<void> {
-    if (await requestPersistentStorage() || getMeta<boolean>("storageWarned", false)) {
+async function welcomeOrStorageNote(): Promise<void> {
+    const persisted = await requestPersistentStorage();
+    if (!getMeta<boolean>("welcomed", false) && !syncAuth()) {
+        setMeta("welcomed", true);
+        setMeta("storageWarned", true);
+        const result = await openDialog({
+            title: "Welcome to Anki Anywhere",
+            text: "Your Anki, in any browser. Log in with your AnkiWeb account to bring your decks here.",
+            buttons: [
+                { label: "Not now", value: "later" },
+                { label: "Log in", value: "login", primary: true },
+            ],
+        });
+        if (result.button === "login") {
+            await onSync();
+        }
+        return;
+    }
+    if (persisted || getMeta<boolean>("storageWarned", false)) {
         return;
     }
     setMeta("storageWarned", true);
