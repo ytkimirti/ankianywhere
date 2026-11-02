@@ -418,7 +418,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     .notices {
         position: fixed;
-        bottom: 4.5rem;
+        /* 4.5rem above the bottom of the visible part, as App.svelte's shell */
+        bottom: calc(100% - var(--app-top, 0px) - var(--app-height, 100%) + 4.5rem);
         left: 50%;
         transform: translateX(-50%);
         z-index: 1100;

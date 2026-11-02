@@ -32,7 +32,8 @@ td { border: 1px solid #ccc; padding: 1em; }
 const OVERLAY_CSS = `
 .print-preview {
     position: fixed;
-    inset: 0;
+    inset: var(--app-top, 0px) 0 auto;
+    height: var(--app-height, 100dvh);
     z-index: 900;
     display: flex;
     flex-direction: column;

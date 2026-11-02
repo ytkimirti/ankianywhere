@@ -135,6 +135,29 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     // reaches under its bottom toolbar, and after the keyboard closes it can leave
     // the page panned down, which page scrolling cannot undo. The app shell and
     // the overlays follow the visible part (--app-top, --app-height) instead.
+    // While a text field has focus they stay put, so the browser's own panning
+    // keeps the field in view above the keyboard.
+    function typing(doc: Document): boolean {
+        const el = doc.activeElement;
+        if (!el) {
+            return false;
+        }
+        if (el instanceof HTMLIFrameElement) {
+            try {
+                return !!el.contentDocument && typing(el.contentDocument);
+            } catch {
+                return false; // another origin: the card frame
+            }
+        }
+        return (el as HTMLElement).isContentEditable
+            || el.tagName === "TEXTAREA"
+            || el.tagName === "SELECT"
+            || (el.tagName === "INPUT"
+                && !/^(button|checkbox|color|file|hidden|image|radio|range|reset|submit)$/.test(
+                    (el as HTMLInputElement).type,
+                ));
+    }
+
     onMount(() => {
         const vv = window.visualViewport;
         if (!vv) {
@@ -143,7 +166,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         const root = document.documentElement.style;
         const update = () => {
             // a pinch zoom keeps the layout as it was
-            if (Math.abs(vv.scale - 1) > 0.01) {
+            if (Math.abs(vv.scale - 1) > 0.01 || typing(document)) {
                 return;
             }
             root.setProperty("--app-top", `${vv.offsetTop}px`);
@@ -152,9 +175,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         update();
         vv.addEventListener("resize", update);
         vv.addEventListener("scroll", update);
+        // the keyboard may already be gone when the field loses focus
+        document.addEventListener("focusout", update);
         return () => {
             vv.removeEventListener("resize", update);
             vv.removeEventListener("scroll", update);
+            document.removeEventListener("focusout", update);
         };
     });
 
