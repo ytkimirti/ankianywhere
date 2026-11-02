@@ -14,6 +14,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     let { win }: { win: WindowHandle } = $props();
 
     const website = "https://apps.ankiweb.net/";
+    const source = "https://github.com/ytkimirti/ankianywhere";
 
     function supportText(): string {
         const plugins = loadedPlugins().map((p) => `${p.name} (${p.url})`);
@@ -37,6 +38,11 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     <p>{trq.aboutAnkiIsLicensedUnderTheAgpl3()}</p>
     <p>{trq.aboutVersion({ val: __ANKI_VERSION__ })}</p>
     <p><a href={website} target="_blank" rel="noopener">{website}</a></p>
+    <p class="unofficial">
+        Anki Anywhere is an unofficial web build of Anki, not affiliated with or endorsed by
+        Ankitects. Source and bug reports:
+        <a href={source} target="_blank" rel="noopener">github.com/ytkimirti/ankianywhere</a>
+    </p>
     <footer>
         <button type="button" class="btn btn-secondary" onclick={() => void copyDebugInfo()}>
             {trq.aboutCopyDebugInfo()}
@@ -53,6 +59,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     }
     img {
         max-width: 60%;
+    }
+    .unofficial {
+        font-size: 0.9em;
+        opacity: 0.8;
     }
     footer {
         display: flex;

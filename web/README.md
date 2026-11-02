@@ -82,6 +82,13 @@ cp -r web/vercel.json web/api web/build/ && vercel deploy web/build --prod
 Serve the card origin from the same deployment by adding its domain to the
 project.
 
+`web/selfhost` is a template for deploying a copy without building anything:
+its build step downloads the `web-latest` release's
+`ankianywhere-web.tar.gz`, which the deploy workflow rebuilds without a card
+origin and uploads on every push to `main`, and its `vercel.json` and proxy
+match the ones here (`tests/selfhost.test.ts` checks this). The root README's
+Deploy button clones it.
+
 This fork deploys as Anki Anywhere to the `ankianywhere` Vercel project: the
 app at https://ankianywhere.vercel.app, built with
 `VITE_CARD_ORIGIN=https://ankianywhere-cards.vercel.app`, which is the

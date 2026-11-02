@@ -135,12 +135,17 @@ export async function updateSyncStatus(): Promise<void> {
     }
 }
 
+// AnkiWeb refuses requests from other sites, so the login and sync go through
+// this site's relay (api/ankiweb-proxy.js), which stores nothing.
+const LOGIN_PRIVACY = "<p><small>This site relays your login to AnkiWeb and stores nothing on its server. "
+    + '<a href="https://github.com/ytkimirti/ankianywhere#privacy" target="_blank" rel="noopener">How sync works</a></small></p>';
+
 /** Login dialog; resolves true once a key is stored. */
 export async function syncLoginDialog(username = "", password = ""): Promise<boolean> {
     for (;;) {
         const result = await openDialog({
             title: trq.qtMiscSync(),
-            text: tr.syncAccountRequired({ link: "https://ankiweb.net/account/signup" }),
+            text: tr.syncAccountRequired({ link: "https://ankiweb.net/account/signup" }) + LOGIN_PRIVACY,
             html: true,
             form: [
                 { key: "user", label: tr.syncAnkiwebIdLabel(), type: "text", value: username },

@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write # publishes the self-hosting build as the web-latest release
 
 # Finish an in-flight deployment before starting the newest queued push.
 concurrency:
@@ -81,11 +81,21 @@ jobs:
       - name: Run web tests
         run: bun test web/tests
 
-      - name: Build site
+      # Self-hosted copies (web/selfhost) have one domain, so this build shows
+      # cards on the app's origin.
+      - name: Build self-hosting site
         run: |
           (cd ts && ../node_modules/.bin/svelte-kit sync)
           cd web
           ../node_modules/.bin/svelte-kit sync
+          ../node_modules/.bin/vite build
+          node scripts/sw-integrity.mjs
+          echo "$GITHUB_SHA" > build/BUILD
+          tar czf "$RUNNER_TEMP/ankianywhere-web.tar.gz" -C build .
+
+      - name: Build site
+        run: |
+          cd web
           VITE_CARD_ORIGIN="$CARD_ORIGIN" ../node_modules/.bin/vite build
           node scripts/sw-integrity.mjs
           cp -r vercel.json api build/
@@ -99,3 +109,17 @@ jobs:
         run: |
           url=$(vercel deploy web/build --prod --yes --token "$VERCEL_TOKEN")
           printf '### Production deployment\n\nhttps://ankianywhere.vercel.app (%s)\n' "$url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish self-hosting build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=web-latest
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" -f sha="$GITHUB_SHA" -F force=true > /dev/null
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "Anki Anywhere (latest web build)" \
+              --notes "The newest build of the site, which [web/selfhost](https://github.com/$GITHUB_REPOSITORY/tree/main/web/selfhost) deploys. Replaced on every push to main."
+          fi
+          gh release upload "$tag" "$RUNNER_TEMP/ankianywhere-web.tar.gz" --repo "$GITHUB_REPOSITORY" --clobber

@@ -97,6 +97,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                         label: accel(trq.qtAccelSupportAnki()),
                         action: () => window.open("https://apps.ankiweb.net/support/", "_blank", "noopener"),
                     },
+                    {
+                        label: "Report a Problem",
+                        action: () => window.open("https://github.com/ytkimirti/ankianywhere/issues", "_blank", "noopener"),
+                    },
                     null,
                     { label: accel(trq.qtAccelAbout()), action: () => void actions.onAbout() },
                 ],

@@ -1,33 +1,74 @@
-# Anki
+# Anki Anywhere
 
-[![Build Status](https://github.com/ankitects/anki/actions/workflows/ci.yml/badge.svg)](https://github.com/ankitects/anki/actions/workflows/ci.yml)
-[![Documentation](https://img.shields.io/badge/docs-dev--docs.ankiweb.net-blue)](https://dev-docs.ankiweb.net/en/latest/)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ankitects_anki&metric=coverage)](https://sonarcloud.io/summary/new_code?id=ankitects_anki)
+Desktop Anki in your browser. Study your AnkiWeb decks on any computer, phone
+or tablet, with nothing to install. On an iPhone, that makes it a free way to
+use Anki there.
 
-This repo contains the source code for the computer version of
-[Anki](https://apps.ankiweb.net).
+**[Open Anki Anywhere](https://ankianywhere.vercel.app)** or
+[deploy your own copy](#deploy-your-own) in a minute.
 
-## About
+<p>
+<img src="web/screenshots/desktop-decks.png" width="49%" alt="Deck list">
+<img src="web/screenshots/desktop-answer.png" width="49%" alt="Reviewing a card">
+</p>
+<p>
+<img src="web/screenshots/phone-decks.png" width="24%" alt="Deck list on a phone">
+<img src="web/screenshots/phone-answer.png" width="24%" alt="Reviewing on a phone">
+<img src="web/screenshots/phone-dark-spanish.png" width="24%" alt="Reviewing in dark mode">
+<img src="web/screenshots/phone-dark-decks.png" width="24%" alt="Deck list in dark mode">
+</p>
 
-Anki is a spaced repetition program. Please see the [website](https://apps.ankiweb.net) to learn more.
+## What it is
 
-## Getting Started
+- **Anki itself, not a clone.** Anki's Rust core is compiled to WebAssembly,
+  and desktop's own screens (deck options, statistics, the editor, image
+  occlusion and more) run unchanged. Scheduling, FSRS included, is the same
+  code desktop runs.
+- **Syncs with your AnkiWeb account**, so it works alongside Anki on your
+  computer, AnkiDroid and AnkiMobile. Log in with the account you already
+  have.
+- **Your collection stays in your browser.** It is stored on your device,
+  not on a server, and works offline once loaded. You can install it to your
+  home screen like an app.
+- **Add-ons**, rebuilt for the web: Review Heatmap, Advanced Browser, Speed
+  Focus Mode and more, one click each under Tools > Add-ons.
 
-### Contributing
+## Privacy
 
-Want to contribute to Anki? Check out the [Contribution Guidelines](./docs/contributing.md).
+AnkiWeb does not accept requests from other websites, so sync goes through a
+small relay ([`web/api/ankiweb-proxy.js`](web/api/ankiweb-proxy.js)) that
+forwards each request to ankiweb.net and stores nothing. Your login passes
+through it once; after that the app keeps only AnkiWeb's sync key, in your
+browser. If you'd rather not trust this site's relay,
+[deploy your own](#deploy-your-own): then the relay is yours.
 
-For more information on building and developing, please see [Development](./docs/development.md).
+## Deploy your own
 
-#### Contributors
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fytkimirti%2Fankianywhere%2Ftree%2Fmain%2Fweb%2Fselfhost&project-name=my-anki&repository-name=my-anki)
 
-The following people have contributed to Anki: [CONTRIBUTORS](./CONTRIBUTORS)
+The button copies a small template ([`web/selfhost`](web/selfhost)) to your
+GitHub and deploys it on a free Vercel account. It downloads the newest
+prebuilt app, so nothing is compiled; redeploy in Vercel to update. Your copy
+gets its own address and its own relay.
 
-### Anki Betas
+## Good to know
 
-If you'd like to try development builds of Anki but don't feel comfortable
-building the code, please see [Anki betas](https://docs.ankiweb.net/releases/betas/intro).
+- Only one tab can have your collection open at a time.
+- Sync regularly. Browsers can clear a site's data when the device runs low
+  on space, and Safari clears sites you haven't opened for 7 days unless you
+  add them to your home screen.
+- Desktop add-ons written in Python can't run in a browser; only the rebuilt
+  ones above can.
 
-## License
+Found a bug? [Open an issue](https://github.com/ytkimirti/ankianywhere/issues).
 
-Anki's license: [LICENSE](./LICENSE)
+## How it's built
+
+A fork of [ankitects/anki](https://github.com/ankitects/anki). The web app
+lives in [`web/`](web), and [`web/README.md`](web/README.md) explains how it
+fits together, how to build it and how plugins work. Everything else is
+Anki's own code, kept in step with upstream.
+
+Anki® is a registered trademark of Ankitects. Anki Anywhere is an unofficial
+project, not affiliated with or endorsed by Ankitects. Like Anki, it is
+licensed under the [GNU AGPL, version 3 or later](LICENSE).
