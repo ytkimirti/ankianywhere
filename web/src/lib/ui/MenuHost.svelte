@@ -24,9 +24,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     return;
                 }
                 const rect = rootEl.getBoundingClientRect();
+                // the visible part of the page, which iOS Safari can leave panned
+                const top = visualViewport?.offsetTop ?? 0;
+                const bottom = top + (visualViewport?.height ?? innerHeight);
                 pos = {
                     x: Math.max(4, Math.min(menu.x, innerWidth - rect.width - 4)),
-                    y: menu.y + rect.height > innerHeight - 4 ? Math.max(4, innerHeight - rect.height - 4) : menu.y,
+                    y: menu.y + rect.height > bottom - 4 ? Math.max(top + 4, bottom - rect.height - 4) : menu.y,
                 };
                 rootEl.querySelector<HTMLElement>("button:not(:disabled)")?.focus();
             });

@@ -135,10 +135,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     // reaches under its bottom toolbar, and after the keyboard closes it can leave
     // the page panned down, which page scrolling cannot undo. The app shell and
     // the overlays follow the visible part (--app-top, --app-height) instead.
-    // While a text field has focus they stay put, so the browser's own panning
-    // keeps the field in view above the keyboard.
+    // On touch screens they stay put while a text field has focus, so the
+    // browser's own panning keeps the field in view above the keyboard.
     function typing(doc: Document): boolean {
-        const el = doc.activeElement;
+        let el = doc.activeElement;
+        // the editor's fields are inside shadow roots
+        while (el?.shadowRoot?.activeElement) {
+            el = el.shadowRoot.activeElement;
+        }
         if (!el) {
             return false;
         }
@@ -164,23 +168,32 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             return;
         }
         const root = document.documentElement.style;
+        const touch = matchMedia("(pointer: coarse)");
+        let width = vv.width;
         const update = () => {
             // a pinch zoom keeps the layout as it was
-            if (Math.abs(vv.scale - 1) > 0.01 || typing(document)) {
+            if (Math.abs(vv.scale - 1) > 0.01) {
+                return;
+            }
+            // a rotation or window resize always applies
+            const resized = vv.width !== width;
+            width = vv.width;
+            if (!resized && touch.matches && typing(document)) {
                 return;
             }
             root.setProperty("--app-top", `${vv.offsetTop}px`);
             root.setProperty("--app-height", `${vv.height}px`);
         };
+        // during focusout the next field has not taken focus yet
+        const afterFocusMoves = () => setTimeout(update);
         update();
         vv.addEventListener("resize", update);
         vv.addEventListener("scroll", update);
-        // the keyboard may already be gone when the field loses focus
-        document.addEventListener("focusout", update);
+        document.addEventListener("focusout", afterFocusMoves);
         return () => {
             vv.removeEventListener("resize", update);
             vv.removeEventListener("scroll", update);
-            document.removeEventListener("focusout", update);
+            document.removeEventListener("focusout", afterFocusMoves);
         };
     });
 

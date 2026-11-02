@@ -243,7 +243,7 @@ function binding(config: Config, list: Screen[], button: number): string | undef
 }
 
 const CSS = `
-.contanki-overlay { position: fixed; right: 1rem; bottom: 4.5rem; z-index: 50; padding: 0.5rem 0.75rem;
+.contanki-overlay { position: fixed; right: 1rem; bottom: calc(100% - var(--app-top, 0px) - var(--app-height, 100%) + 4.5rem); z-index: 50; padding: 0.5rem 0.75rem;
     background: var(--canvas-elevated); border: 1px solid var(--border); border-radius: var(--border-radius-medium, 8px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); font-size: 0.85em; pointer-events: none; }
 .contanki-overlay table { border-collapse: collapse; }
