@@ -105,21 +105,25 @@ export async function boot(): Promise<void> {
         addProfile(name);
     }
     setLoadingStage("Opening your collection…");
-    await loadProfile(name);
-    void welcomeOrStorageNote();
+    if (await loadProfile(name)) {
+        void welcomeOrStorageNote();
+    }
 }
 
 /**
  * On the first visit, says what this is and offers to log in to AnkiWeb.
- * Otherwise asks the browser to keep Anki's data, and says once if it won't:
- * the collection, media and backups could all be evicted. Syncing covers
- * that, so the welcome does not repeat it.
+ * Without a login, asks the browser to keep Anki's data and says once if it
+ * won't: the collection, media and backups could all be evicted. Firefox asks
+ * the user about that, so the welcome comes first.
  */
 async function welcomeOrStorageNote(): Promise<void> {
-    const persisted = await requestPersistentStorage();
-    if (!getMeta<boolean>("welcomed", false) && !syncAuth()) {
+    if (syncAuth()) {
         setMeta("welcomed", true);
-        setMeta("storageWarned", true);
+        void requestPersistentStorage();
+        return;
+    }
+    if (!getMeta<boolean>("welcomed", false)) {
+        setMeta("welcomed", true);
         const result = await openDialog({
             title: "Welcome to Anki Anywhere",
             text: "Your Anki, in any browser. Log in with your AnkiWeb account to bring your decks here.",
@@ -129,17 +133,17 @@ async function welcomeOrStorageNote(): Promise<void> {
             ],
         });
         if (result.button === "login") {
+            void requestPersistentStorage();
             await onSync();
+            return;
         }
-        return;
     }
-    if (persisted || getMeta<boolean>("storageWarned", false)) {
+    if (await requestPersistentStorage() || getMeta<boolean>("storageWarned", false)) {
         return;
     }
     setMeta("storageWarned", true);
     await showWarning(STORAGE_WARNING);
 }
-
 
 /**
  * Opens a profile, resolving false if it could not be. After restoring a
